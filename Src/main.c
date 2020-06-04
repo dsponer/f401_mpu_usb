@@ -55,12 +55,12 @@
 #include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
+#include "math.h"
 
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "mpu6050.h"
-#include "gps.h"
+//#include "mpu6050.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -81,20 +81,23 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-MPU6050_t MPU6050;
+//MPU6050_t MPU6050;
+uint8_t start_buf[2];
+char str_tx[16];
+uint8_t buf_mes[82];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-    if(huart == &huart1) GPS_UART_CallBack();
-}
+
 /* USER CODE END 0 */
 
 /**
@@ -127,20 +130,25 @@ int main(void) {
     MX_I2C1_Init();
     MX_USB_DEVICE_Init();
     MX_USART1_UART_Init();
-    GPS_Init();
     /* USER CODE BEGIN 2 */
-    while (MPU6050_Init(&hi2c1) == 1);
+//    while (MPU6050_Init(&hi2c1) == 1);
     /* USER CODE END 2 */
-    char data_mpu[130];
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1) {
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
-//        sprintf(data_mpu, "\n");
-//        CDC_Transmit_FS(&data_mpu, strlen(data_mpu));
-        HAL_Delay(1000);
+
+        HAL_UART_Receive_IT(&huart1, (uint8_t *) buf_mes, 81);
+        CDC_Transmit_FS((uint8_t *) buf_mes, 81);
+        HAL_Delay(5000);
+        CDC_Transmit_FS((uint8_t *) "\r\n", 2);
+
+
+//        sprintf(str_tx, "End transmit\r\n");
+//        CDC_Transmit_FS((uint8_t *) str_tx, strlen(str_tx));
+//        HAL_Delay(1000);
     }
     /* USER CODE END 3 */
 }
@@ -185,7 +193,11 @@ void SystemClock_Config(void) {
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart == &huart1) {
 
+    }
+}
 /* USER CODE END 4 */
 
 /**

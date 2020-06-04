@@ -1,60 +1,50 @@
-/*
- * gps.h
- *
- *  Created on: Nov 15, 2019
- *      Author: Bulanov Konstantin
- */
+#include "stdint.h"
 
-#define GPS_DEBUG	1
-#define	GPS_USART	&huart1
-#define GPSBUFSIZE  128       // GPS buffer size
+//##################################################################################################################
 
-typedef struct{
+typedef struct {
+    uint8_t UTC_Hour;
+    uint8_t UTC_Min;
+    uint8_t UTC_Sec;
+    uint16_t UTC_MicroSec;
 
-    // calculated values
-    float dec_longitude;
-    float dec_latitude;
-    float altitude_ft;
+    float Latitude;
+    double LatitudeDecimal;
+    char NS_Indicator;
+    float Longitude;
+    double LongitudeDecimal;
+    char EW_Indicator;
 
-    // GGA - Global Positioning System Fixed Data
-    float nmea_longitude;
-    float nmea_latitude;
-    float utc_time;
-    char ns, ew;
-    int lock;
-    int satelites;
-    float hdop;
-    float msl_altitude;
-    char msl_units;
+    uint8_t PositionFixIndicator;
+    uint8_t SatellitesUsed;
+    float HDOP;
+    float MSL_Altitude;
+    char MSL_Units;
+    float Geoid_Separation;
+    char Geoid_Units;
 
-    // RMC - Recommended Minimmum Specific GNS Data
-    char rmc_status;
-    float speed_k;
-    float course_d;
-    int date;
+    uint16_t AgeofDiffCorr;
+    char DiffRefStationID[4];
+    char CheckSum[2];
 
-    // GLL
-    char gll_status;
+} GPGGA_t;
 
-    // VTG - Course over ground, ground speed
-    float course_t; // ground speed true
-    char course_t_unit;
-    float course_m; // magnetic
-    char course_m_unit;
-    char speed_k_unit;
-    float speed_km; // speek km/hr
-    char speed_km_unit;
+typedef struct {
+    uint8_t rxBuffer[512];
+    uint16_t rxIndex;
+    uint8_t rxTmp;
+    uint32_t LastTime;
+
+    GPGGA_t GPGGA;
+
 } GPS_t;
 
-#if (GPS_DEBUG == 1)
-void GPS_print(char *data);
-#endif
+extern GPS_t GPS;
 
-void GPS_Init();
-void GSP_USBPrint(char *data);
-void GPS_print_val(char *data, int value);
-void GPS_UART_CallBack();
-int GPS_validate(char *nmeastr);
-void GPS_parse(char *GPSstrParse);
-float GPS_nmea_to_dec(float deg_coord, char nsew);
+//##################################################################################################################
+void GPS_Init(void);
 
+void GPS_CallBack(void);
+
+void GPS_Process(void);
+//##################################################################################################################
